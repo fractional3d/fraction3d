@@ -1900,7 +1900,7 @@
         
         async function displayAllRanks() {
             try {
-                const ranks = await contract.getAllRanks();
+                const ranks = await contract.ranks();
                 const ranksList = document.getElementById('ranksList');
                 ranksList.innerHTML = ''; // Clear existing list
                 ranks.forEach((rank, index) => {
