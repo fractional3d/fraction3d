@@ -1899,19 +1899,23 @@
         }
         
         async function displayAllRanks() {
-            try {
-                const ranks = await contract.ranks();
-                const ranksList = document.getElementById('ranksList');
-                ranksList.innerHTML = ''; // Clear existing list
-                ranks.forEach((rank, index) => {
-                    const li = document.createElement('li');
-                    li.textContent = `Rank ${index + 1}: Directs Needed - ${rank.totalDirectsNeeded}, Business Required - ${rank.totalBusinessRequired}, Commission - ${rank.directCommissionPercentage}%`;
-                    ranksList.appendChild(li);
-                });
-            } catch (error) {
-                console.error('Error fetching ranks:', error);
-            }
-        }        
+           try {
+               const totalRanks = await contract.maxRank(); // This retrieves the value of the public state variable `maxRank`
+               const ranksList = document.getElementById('ranksList');
+               ranksList.innerHTML = ''; // Clear existing list
+            
+               // Start at rank 1 and loop to totalRanks, assuming rank IDs start at 1
+               for (let i = 1; i <= totalRanks; i++) {
+                   const rankDetails = await contract.ranks(i); // Pass rank ID to the contract function
+                   const li = document.createElement('li');
+                   li.textContent = `Rank ${i}: Directs Needed - ${rankDetails.totalDirectsNeeded}, Business Required - ${rankDetails.totalBusinessRequired}, Commission - ${rankDetails.directCommissionPercentage}%`;
+                   ranksList.appendChild(li);
+               }
+           } catch (error) {
+               console.error('Error fetching ranks:', error);
+           }
+        }
+
     </script>
 </body>
 </html>
