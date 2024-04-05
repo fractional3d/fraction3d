@@ -1,4 +1,4 @@
-const contractAddress = "0x476645903882fA3852ba5D6FcE45d638d8bDCBc2";
+const contractAddress = "0x6CAf56d5017e93CE0cA565d85998615F4541df57";
 const currentPath = window.location.pathname;
 
 async function fetchABI() {
