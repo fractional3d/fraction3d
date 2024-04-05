@@ -1900,10 +1900,10 @@
         
         async function displayAllRanks() {
            try {
-               const totalRanks = await contract.maxRank(); // This retrieves the value of the public state variable `maxRank`
+               const totalRanks = 10; // This retrieves the value of the public state variable `maxRank`
                const ranksList = document.getElementById('ranksList');
                ranksList.innerHTML = ''; // Clear existing list
-            
+
                // Start at rank 1 and loop to totalRanks, assuming rank IDs start at 1
                for (let i = 1; i <= totalRanks; i++) {
                    const rankDetails = await contract.ranks(i); // Pass rank ID to the contract function
