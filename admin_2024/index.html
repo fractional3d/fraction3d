@@ -107,6 +107,18 @@
         <button onclick="setMaxDepth()">Set Max Depth</button>
     </div>
 
+    <hr>
+    <br>
+    <br>
+    <div>
+        <h3>All Packages</h3>
+        <ul id="packagesList"></ul>
+    </div>
+    
+    <div>
+        <h3>All Ranks</h3>
+        <ul id="ranksList"></ul>
+    </div>
 
     <script>
         let provider;
@@ -1736,6 +1748,8 @@
                     signer = provider.getSigner();
                     contract = new ethers.Contract(contractAddress, contractABI, signer);
                     console.log('Wallet connected');
+                    displayAllPackages();
+                    displayAllRanks();
                 } catch (error) {
                     console.error(error);
                 }
@@ -1869,6 +1883,35 @@
             await transaction.wait();
             console.log('All ETH Withdrawn');
         }
+        async function displayAllPackages() {
+            try {
+                const packages = await contract.getAllPackages();
+                const packagesList = document.getElementById('packagesList');
+                packagesList.innerHTML = ''; // Clear existing list
+                packages.forEach((package, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = `Package ${index + 1}: Amount - ${package.amount}, Duration - ${package.durationDays} days, Return - ${package.returnPercentage}%`;
+                    packagesList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching packages:', error);
+            }
+        }
+        
+        async function displayAllRanks() {
+            try {
+                const ranks = await contract.getAllRanks();
+                const ranksList = document.getElementById('ranksList');
+                ranksList.innerHTML = ''; // Clear existing list
+                ranks.forEach((rank, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = `Rank ${index + 1}: Directs Needed - ${rank.totalDirectsNeeded}, Business Required - ${rank.totalBusinessRequired}, Commission - ${rank.directCommissionPercentage}%`;
+                    ranksList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching ranks:', error);
+            }
+        }        
     </script>
 </body>
 </html>
