@@ -14,12 +14,19 @@ async function fetcherc20ABI() {
 }
 
 async function checkUserRegistration(address) {
+    const registrationStatus = document.getElementById('registrationStatus');
     try {
+        // First, check if the connected network is Binance Smart Chain
+        const networkId = await web3.eth.net.getId();
+        if (networkId !== 56) { // 56 is the network ID for Binance Smart Chain mainnet
+            registrationStatus.textContent = 'Please switch your network to Binance Smart Chain.';
+            return; // Stop execution if not connected to Binance Smart Chain
+        }
+
         const abi = await fetchABI();
         const contract = new web3.eth.Contract(abi, contractAddress);
         const registered = await contract.methods.isUserRegistered(address).call();
         const walletInfo = document.getElementById('walletInfo');
-        const registrationStatus = document.getElementById('registrationStatus');
 
         walletInfo.classList.remove('hidden');
         document.getElementById('walletAddress').textContent = `Connected: ${address}`;
@@ -35,10 +42,7 @@ async function checkUserRegistration(address) {
         document.getElementById('loginBtn').classList.add('hidden');
     } catch (error) {
         console.error('Error checking user registration:', error);
-        // Handle the error, possibly by showing an error message to the user
-        const registrationStatus = document.getElementById('registrationStatus');
         registrationStatus.textContent = 'Error checking registration status. Please try again later.';
-        // Optionally, hide both buttons if an error occurs
         document.getElementById('proceedBtn').classList.add('hidden');
         document.getElementById('signupBtn').classList.add('hidden');
     }
