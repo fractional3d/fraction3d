@@ -1,6 +1,12 @@
 let web3;
+let registrationStatus, walletInfo, proceedBtn, signupBtn, loginBtn;
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    registrationStatus = document.getElementById('registrationStatus');
+    walletInfo = document.getElementById('walletInfo');
+    proceedBtn = document.getElementById('proceedBtn');
+    signupBtn = document.getElementById('signupBtn');
+    loginBtn = document.getElementById('loginBtn');
 
     // Check for Ethereum provider
     if (typeof window.ethereum !== 'undefined' || (typeof window.web3 !== 'undefined')) {

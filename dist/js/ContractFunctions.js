@@ -15,47 +15,37 @@ async function fetcherc20ABI() {
 
 async function checkUserRegistration(address) {
     try {
-        // Check for the registrationStatus element before proceeding
-        const registrationStatus = document.getElementById('registrationStatus');
-        if (!registrationStatus) return; // Exit if the element does not exist
-
-        // Check if the connected network is Binance Smart Chain
         const networkId = await web3.eth.net.getId();
-        if (networkId !== 56) { // 56 is the network ID for Binance Smart Chain mainnet
+        if (networkId !== 56) {
             registrationStatus.textContent = 'Please switch your network to Binance Smart Chain.';
-            return; // Stop execution if not connected to Binance Smart Chain
+            return;
         }
 
         const abi = await fetchABI();
         const contract = new web3.eth.Contract(abi, contractAddress);
         const registered = await contract.methods.isUserRegistered(address).call();
 
-        // Check for the walletInfo element before proceeding
-        const walletInfo = document.getElementById('walletInfo');
-        if (walletInfo) {
-            walletInfo.classList.remove('hidden');
-            document.getElementById('walletAddress').textContent = `Connected: ${address}`;
-        }
+        if (walletInfo) walletInfo.classList.remove('hidden');
+        if (registrationStatus) document.getElementById('walletAddress').textContent = `Connected: ${address}`;
 
         if (registered) {
-            registrationStatus.textContent = 'Registered User';
-            document.getElementById('proceedBtn')?.classList.remove('hidden');
-            document.getElementById('signupBtn')?.classList.add('hidden');
+            if (registrationStatus) registrationStatus.textContent = 'Registered User';
+            if (proceedBtn) proceedBtn.classList.remove('hidden');
+            if (signupBtn) signupBtn.classList.add('hidden');
         } else {
-            registrationStatus.textContent = 'You are not registered.';
-            document.getElementById('proceedBtn')?.classList.add('hidden');
-            document.getElementById('signupBtn')?.classList.remove('hidden');
+            if (registrationStatus) registrationStatus.textContent = 'You are not registered.';
+            if (proceedBtn) proceedBtn.classList.add('hidden');
+            if (signupBtn) signupBtn.classList.remove('hidden');
         }
-        document.getElementById('loginBtn')?.classList.add('hidden');
+        if (loginBtn) loginBtn.classList.add('hidden');
     } catch (error) {
         console.error('Error checking user registration:', error);
-        if (registrationStatus) {
-            registrationStatus.textContent = 'Error checking registration status. Please try again later.';
-        }
-        document.getElementById('proceedBtn')?.classList.add('hidden');
-        document.getElementById('signupBtn')?.classList.add('hidden');
+        if (registrationStatus) registrationStatus.textContent = 'Error checking registration status. Please try again later.';
+        if (proceedBtn) proceedBtn.classList.add('hidden');
+        if (signupBtn) signupBtn.classList.add('hidden');
     }
 }
+
 
 
 async function isUserRegistered(address) {
