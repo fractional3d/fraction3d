@@ -120,6 +120,16 @@
         <ul id="ranksList"></ul>
     </div>
 
+    <div>
+      <h3>System Total Withdrawals</h3>
+      <p id="systemTotalWithdrawals">Loading...</p>
+    </div>
+  
+    <div>
+      <h3>System Total Deposits</h3>
+      <p id="systemTotalDeposits">Loading...</p>
+    </div>
+  
     <script>
         let provider;
         let signer;
@@ -1748,6 +1758,8 @@
                     signer = provider.getSigner();
                     contract = new ethers.Contract(contractAddress, contractABI, signer);
                     console.log('Wallet connected');
+                    await displaySystemTotalWithdrawals();
+                    await displaySystemTotalDeposits();
                     displayAllPackages();
                     displayAllRanks();
                 } catch (error) {
@@ -1757,7 +1769,23 @@
                 console.log('Please install MetaMask!');
             }
         });
+        async function displaySystemTotalWithdrawals() {
+            try {
+                const totalWithdrawals = await contract.systemtotalWithdrawals();
+                document.getElementById('systemTotalWithdrawals').innerText = `System Total Withdrawals: ${ethers.utils.formatEther(totalWithdrawals)} USDT`;
+            } catch (error) {
+                console.error('Error fetching system total withdrawals:', error);
+            }
+        }
 
+        async function displaySystemTotalDeposits() {
+            try {
+                const totalDeposits = await contract.systemTotalDeposits();
+                document.getElementById('systemTotalDeposits').innerText = `System Total Deposits: ${ethers.utils.formatEther(totalDeposits)} USDT`;
+            } catch (error) {
+                console.error('Error fetching system total deposits:', error);
+            }
+        }
         async function updateToken() {
             const tokenAddress = document.getElementById('updateTokenAddress').value;
             const decimals = parseInt(document.getElementById('updateTokenDecimals').value, 10);
