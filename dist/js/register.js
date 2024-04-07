@@ -43,8 +43,6 @@ async function checkIfWalletIsConnected() {
         const registerBtn = document.getElementById('registerBtn');
         registerBtn.classList.remove('hidden');
 
-        const LoginBtn = document.getElementById('LoginBtn');
-        LoginBtn.classList.remove('hidden');
     } else {
         console.log('No wallet connected.');
     }
