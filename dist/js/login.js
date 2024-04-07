@@ -54,6 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Listen for account changes
+window.ethereum.on('accountsChanged', function (accounts) {
+    console.log('Account changed:', accounts[0]);
+    window.location.reload();
+});
+
 async function checkIfWalletIsConnected() {
     const accounts = await web3.eth.getAccounts();
     if (accounts.length > 0) {
