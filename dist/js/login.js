@@ -36,6 +36,35 @@ function updateUIOnConnection(account) {
     document.getElementById('loginBtn').classList.add('hidden');
 }
 
+// Initialization on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize DOM elements
+    registrationStatus = document.getElementById('registrationStatus');
+    walletInfo = document.getElementById('walletInfo');
+    proceedBtn = document.getElementById('proceedBtn');
+    signupBtn = document.getElementById('signupBtn');
+    loginBtn = document.getElementById('loginBtn');
+
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        window.ethereum.on('accountsChanged', () => window.location.reload());
+        checkIfWalletIsConnected();
+    } else {
+        alert('Wallet is not detected or locked. Please install MetaMask or use a browser with an Ethereum wallet.');
+    }
+});
+
+async function checkIfWalletIsConnected() {
+    const accounts = await web3.eth.getAccounts();
+    if (accounts.length > 0) {
+        console.log('Wallet is connected:', accounts[0]);
+        updateUIOnConnection(accounts[0]);
+        await checkUserRegistration(accounts[0]);
+    } else {
+        console.log('No wallet connected.');
+    }
+}
+
 async function checkUserRegistration(address) {
     try {
         const networkId = await web3.eth.net.getId();
@@ -68,37 +97,6 @@ async function checkUserRegistration(address) {
         if (signupBtn) signupBtn.classList.add('hidden');
     }
 }
-
-// Initialization on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize DOM elements
-    registrationStatus = document.getElementById('registrationStatus');
-    walletInfo = document.getElementById('walletInfo');
-    proceedBtn = document.getElementById('proceedBtn');
-    signupBtn = document.getElementById('signupBtn');
-    loginBtn = document.getElementById('loginBtn');
-
-    if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        window.ethereum.on('accountsChanged', () => window.location.reload());
-        checkIfWalletIsConnected();
-    } else {
-        alert('Wallet is not detected or locked. Please install MetaMask or use a browser with an Ethereum wallet.');
-    }
-});
-
-async function checkIfWalletIsConnected() {
-    const accounts = await web3.eth.getAccounts();
-    if (accounts.length > 0) {
-        console.log('Wallet is connected:', accounts[0]);
-        updateUIOnConnection(accounts[0]);
-        await checkUserRegistration(accounts[0]);
-    } else {
-        console.log('No wallet connected.');
-    }
-}
-
-
 
 // Logic for disconnecting the wallet
 function disconnectWallet() {
