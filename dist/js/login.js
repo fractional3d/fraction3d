@@ -1,172 +1,100 @@
+// Global variables
 let web3;
 let registrationStatus, walletInfo, proceedBtn, signupBtn, loginBtn;
 
-document.addEventListener('DOMContentLoaded', (event) => {
+const contractAddress = "0x6CAf56d5017e93CE0cA565d85998615F4541df57";
+const currentPath = window.location.pathname;
+
+async function fetchABI() {
+    const response = await fetch('/dist/js/abi.json');
+    const abi = await response.json();
+    return abi;
+}
+
+// Simplified and consolidated wallet connection logic
+async function connectWallet() {
+    if (!window.ethereum) {
+        alert('Please install a compatible wallet!');
+        return;
+    }
+
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.log('Wallet connected:', accounts[0]);
+        modal.style.display = 'none'; // Assuming 'modal' is globally accessible
+        updateUIOnConnection(accounts[0]);
+        await checkUserRegistration(accounts[0]);
+    } catch (error) {
+        console.error('An error occurred during wallet connection:', error);
+    }
+}
+
+// Update UI after successful connection
+function updateUIOnConnection(account) {
+    document.getElementById('walletInfo').classList.remove('hidden');
+    document.getElementById('walletAddress').textContent = `Connected: ${account}`;
+    document.getElementById('loginBtn').classList.add('hidden');
+}
+
+async function checkUserRegistration(address) {
+    try {
+        const networkId = await web3.eth.net.getId();
+        if (networkId !== 56) {
+            registrationStatus.textContent = 'Please switch your network to Binance Smart Chain.';
+            return;
+        }
+
+        const abi = await fetchABI();
+        const contract = new web3.eth.Contract(abi, contractAddress);
+        const registered = await contract.methods.isUserRegistered(address).call();
+
+        if (walletInfo) walletInfo.classList.remove('hidden');
+        if (registrationStatus) document.getElementById('walletAddress').textContent = `Connected: ${address}`;
+
+        if (registered) {
+            if (registrationStatus) registrationStatus.textContent = 'Registered User';
+            if (proceedBtn) proceedBtn.classList.remove('hidden');
+            if (signupBtn) signupBtn.classList.add('hidden');
+        } else {
+            if (registrationStatus) registrationStatus.textContent = 'You are not registered.';
+            if (proceedBtn) proceedBtn.classList.add('hidden');
+            if (signupBtn) signupBtn.classList.remove('hidden');
+        }
+        if (loginBtn) loginBtn.classList.add('hidden');
+    } catch (error) {
+        console.error('Error checking user registration:', error);
+        if (registrationStatus) registrationStatus.textContent = 'Error checking registration status. Please try again later.';
+        if (proceedBtn) proceedBtn.classList.add('hidden');
+        if (signupBtn) signupBtn.classList.add('hidden');
+    }
+}
+
+// Initialization on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize DOM elements
     registrationStatus = document.getElementById('registrationStatus');
     walletInfo = document.getElementById('walletInfo');
     proceedBtn = document.getElementById('proceedBtn');
     signupBtn = document.getElementById('signupBtn');
     loginBtn = document.getElementById('loginBtn');
 
-    // Check for Ethereum provider
-    if (typeof window.ethereum !== 'undefined' || (typeof window.web3 !== 'undefined')) {
-        // Use MetaMask's provider
-        web3 = new Web3(window.ethereum || window.web3.currentProvider);
-        
-        // Listen for account changes
-        window.ethereum.on('accountsChanged', function (accounts) {
-            console.log('Account changed:', accounts[0]);
-            window.location.reload();
-        });
-
-        // Immediately check if the wallet is connected and if the user is registered
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        window.ethereum.on('accountsChanged', () => window.location.reload());
         checkIfWalletIsConnected();
     } else {
-        alert('Wallet is not detected or Locked. Please install MetaMask or use a browser with an Ethereum wallet.');
+        alert('Wallet is not detected or locked. Please install MetaMask or use a browser with an Ethereum wallet.');
     }
 });
 
 async function checkIfWalletIsConnected() {
     const accounts = await web3.eth.getAccounts();
     if (accounts.length > 0) {
-        // An account is connected
         console.log('Wallet is connected:', accounts[0]);
+        updateUIOnConnection(accounts[0]);
         await checkUserRegistration(accounts[0]);
     } else {
         console.log('No wallet connected.');
-    }
-}
-
-async function connectMetaMask() {
-    if (window.ethereum) {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log('Connected to MetaMask.');
-
-            // Close the modal
-            modal.style.display = 'none';
-
-            // Update wallet information
-            const walletInfo = document.getElementById('walletInfo');
-            const proceedBtn = document.getElementById('proceedBtn');
-            const signupBtn = document.getElementById('signupBtn');
-
-            walletInfo.classList.remove('hidden');
-            document.getElementById('walletAddress').textContent = `Connected: ${accounts[0]}`;
-            document.getElementById('loginBtn').classList.add('hidden');
-
-            try {
-                // Check if the user is registered in the smart contract
-                const registered = await isUserRegistered(accounts[0]);
-                if (registered) {
-                    proceedBtn.classList.remove('hidden');
-                    signupBtn.classList.add('hidden');
-                    console.log('User is registered.');
-                } else {
-                    // Hide the proceed button and show the sign-up button
-                    proceedBtn.classList.add('hidden');
-                    signupBtn.classList.remove('hidden');
-                    console.log('User is not registered.');
-                }
-            } catch (error) {
-                // Handle any errors that occurred during registration check
-                console.error('Registration check failed:', error);
-            }
-            
-        } catch (error) {
-            console.error('User denied account access to MetaMask or an error occurred:', error);
-        }
-    } else {
-        alert('Please install MetaMask!');
-    }
-}
-
-async function connectTrustWallet() {
-    if (window.ethereum) {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log('Connected to Trustwallet.');
-
-            // Close the modal
-            modal.style.display = 'none';
-
-            // Update wallet information
-            const walletInfo = document.getElementById('walletInfo');
-            const proceedBtn = document.getElementById('proceedBtn');
-            const signupBtn = document.getElementById('signupBtn');
-
-            walletInfo.classList.remove('hidden');
-            document.getElementById('walletAddress').textContent = `Connected: ${accounts[0]}`;
-            document.getElementById('loginBtn').classList.add('hidden');
-
-            try {
-                // Check if the user is registered in the smart contract
-                const registered = await isUserRegistered(accounts[0]);
-                if (registered) {
-                    proceedBtn.classList.remove('hidden');
-                    signupBtn.classList.add('hidden');
-                    console.log('User is registered.');
-                } else {
-                    // Hide the proceed button and show the sign-up button
-                    proceedBtn.classList.add('hidden');
-                    signupBtn.classList.remove('hidden');
-                    console.log('User is not registered.');
-                }
-            } catch (error) {
-                // Handle any errors that occurred during registration check
-                console.error('Registration check failed:', error);
-            }
-            
-        } catch (error) {
-            console.error('User denied account access to MetaMask or an error occurred:', error);
-        }
-    } else {
-        alert('Please install Trustwallet or Supported Wallet!');
-    }
-}
-
-
-async function connectTokenPocket() {
-    if (window.ethereum) {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log('Connected to TokenPocket.');
-
-            // Close the modal
-            modal.style.display = 'none';
-
-            // Update wallet information
-            const walletInfo = document.getElementById('walletInfo');
-            const proceedBtn = document.getElementById('proceedBtn');
-            const signupBtn = document.getElementById('signupBtn');
-
-            walletInfo.classList.remove('hidden');
-            document.getElementById('walletAddress').textContent = `Connected: ${accounts[0]}`;
-            document.getElementById('loginBtn').classList.add('hidden');
-
-            try {
-                // Check if the user is registered in the smart contract
-                const registered = await isUserRegistered(accounts[0]);
-                if (registered) {
-                    proceedBtn.classList.remove('hidden');
-                    signupBtn.classList.add('hidden');
-                    console.log('User is registered.');
-                } else {
-                    // Hide the proceed button and show the sign-up button
-                    proceedBtn.classList.add('hidden');
-                    signupBtn.classList.remove('hidden');
-                    console.log('User is not registered.');
-                }
-            } catch (error) {
-                // Handle any errors that occurred during registration check
-                console.error('Registration check failed:', error);
-            }
-            
-        } catch (error) {
-            console.error('User denied account access to MetaMask or an error occurred:', error);
-        }
-    } else {
-        alert('Please install TokenPocket or Supported Wallet!');
     }
 }
 

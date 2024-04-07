@@ -13,41 +13,6 @@ async function fetcherc20ABI() {
     return erc20ABI;
 }
 
-async function checkUserRegistration(address) {
-    try {
-        const networkId = await web3.eth.net.getId();
-        if (networkId !== 56) {
-            registrationStatus.textContent = 'Please switch your network to Binance Smart Chain.';
-            return;
-        }
-
-        const abi = await fetchABI();
-        const contract = new web3.eth.Contract(abi, contractAddress);
-        const registered = await contract.methods.isUserRegistered(address).call();
-
-        if (walletInfo) walletInfo.classList.remove('hidden');
-        if (registrationStatus) document.getElementById('walletAddress').textContent = `Connected: ${address}`;
-
-        if (registered) {
-            if (registrationStatus) registrationStatus.textContent = 'Registered User';
-            if (proceedBtn) proceedBtn.classList.remove('hidden');
-            if (signupBtn) signupBtn.classList.add('hidden');
-        } else {
-            if (registrationStatus) registrationStatus.textContent = 'You are not registered.';
-            if (proceedBtn) proceedBtn.classList.add('hidden');
-            if (signupBtn) signupBtn.classList.remove('hidden');
-        }
-        if (loginBtn) loginBtn.classList.add('hidden');
-    } catch (error) {
-        console.error('Error checking user registration:', error);
-        if (registrationStatus) registrationStatus.textContent = 'Error checking registration status. Please try again later.';
-        if (proceedBtn) proceedBtn.classList.add('hidden');
-        if (signupBtn) signupBtn.classList.add('hidden');
-    }
-}
-
-
-
 async function isUserRegistered(address) {
     try {
         const abi = await fetchABI();
