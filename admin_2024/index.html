@@ -129,7 +129,28 @@
       <h3>System Total Deposits</h3>
       <p id="systemTotalDeposits">Loading...</p>
     </div>
+    <div>
+      <input type="number" id="userIdInput" placeholder="Enter User ID">
+      <button onclick="getAddressByUserId()">Get Wallet Address</button>
+  </div>
+  <p id="userWalletAddress"></p>
   
+    <div>
+      <input type="text" id="userAddress" placeholder="Enter User Address">
+      <button onclick="displayUserDetails()">Display User Details</button>
+  </div>
+  <div>
+    <p id="userID"></p>
+    <p id="sponsorID"></p>
+    <p id="totalDirects"></p>
+    <p id="totalIndirects"></p>
+    <p id="isRegistered"></p>
+    <p id="rank"></p>
+    <p id="totalTeamVolume"></p>
+    <p id="selfBusiness"></p>
+    <p id="totalWithdrawals"></p>
+    <p id="totalMatchingBonus"></p>
+</div>
     <script>
         let provider;
         let signer;
@@ -1943,6 +1964,43 @@
                console.error('Error fetching ranks:', error);
            }
         }
+        async function displayUserDetails() {
+    const userAddress = document.getElementById('userAddress').value; // Assuming you have an input field for the user address
+    try {
+        const userDetails = await contract.getAccountDetails(userAddress);
+        document.getElementById('userID').innerText = `User ID: ${userDetails.userID}`;
+        document.getElementById('sponsorID').innerText = `Sponsor ID: ${userDetails.sponsorID}`;
+        document.getElementById('totalDirects').innerText = `Total Directs: ${userDetails.totalDirects}`;
+        document.getElementById('totalIndirects').innerText = `Total Indirects: ${userDetails.totalIndirects}`;
+        document.getElementById('isRegistered').innerText = `Is Registered: ${userDetails.isRegistered}`;
+        document.getElementById('rank').innerText = `Rank: ${userDetails.rank}`;
+        document.getElementById('totalTeamVolume').innerText = `Total Team Volume: ${userDetails.totalTeamVolume}`;
+        document.getElementById('selfBusiness').innerText = `Self Business: ${userDetails.selfBusiness}`;
+        document.getElementById('totalWithdrawals').innerText = `Total Withdrawals: ${userDetails.totalWithdrawals}`;
+        document.getElementById('totalMatchingBonus').innerText = `Total Matching Bonus: ${userDetails.totalMatchingBonus}`;
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+    }
+}
+async function getAddressByUserId() {
+    const userId = document.getElementById('userIdInput').value;
+    if (!userId) {
+        console.log('Please enter a user ID');
+        return;
+    }
+    try {
+        // Accessing a public mapping value correctly
+        const address = await contract.userIdToAddress(userId);
+        console.log(`Address for user ID ${userId} is: ${address}`);
+        // Update the UI with the fetched address
+        document.getElementById('userWalletAddress').innerText = `Wallet Address: ${address}`;
+    } catch (error) {
+        console.error('Error fetching address:', error);
+        document.getElementById('userWalletAddress').innerText = 'Error fetching address. Please check the console for more information.';
+    }
+}
+
+
 
     </script>
 </body>
