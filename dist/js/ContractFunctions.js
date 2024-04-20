@@ -528,7 +528,10 @@ async function createUserPackagesTable(userAddress, currentPage = 1, recordsPerP
         for (let i = startIndex; i < endIndex; i++) {
             const pkg = userPackages[i];
             const row = tbody.insertRow();
-    
+            row.addEventListener('click', function() {
+                // Call a function to open the popup with package details
+                openPopup(pkg);
+            });
             const startDate = new Date(parseInt(pkg.startTime) * 1000).toLocaleString();
             const endDateValue = new Date(parseInt(pkg.endTime) * 1000); // For comparison
             const endDateText = endDateValue.toLocaleString(); // For displaying
@@ -572,6 +575,91 @@ async function createUserPackagesTable(userAddress, currentPage = 1, recordsPerP
         hideLoading(); // Hide the loading indicator
     }
 }
+
+function openPopup(packageDetails) {
+    const popupContent = document.querySelector('#popup1 .content_popup');
+    
+    // Parse the start and end dates from package details
+    const startDate = new Date(parseInt(packageDetails.startTime) * 1000);
+    const endDate = new Date(parseInt(packageDetails.endTime) * 1000);
+    const today = new Date();
+    
+    // Ensure we don't go past the end date or today, whichever is earlier
+    const calculationEndDate = endDate > today ? today : endDate;
+    
+    // Calculate the total profit and the daily return
+    const totalProfit = packageDetails.totalReturn - packageDetails.amountInvested;
+    const durationInDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+    const dailyReturn = totalProfit / durationInDays;
+    // Calculate the total amount collected so far
+    const daysSoFar = Math.floor((Math.min(today.getTime(), endDate.getTime()) - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const totalCollectedSoFar = (daysSoFar * dailyReturn).toFixed(2);
+
+    // Prepare table content with headers
+    let tableRows = []; 
+    
+
+    // Generate table rows for each day
+    for (let currentDate = new Date(startDate);
+         currentDate <= calculationEndDate; 
+         currentDate.setDate(currentDate.getDate() + 1)) {
+
+        // Calculate the amount collected up to the current date
+        let elapsedDays = (currentDate - startDate) / (1000 * 60 * 60 * 24);
+        let amountCollected = dailyReturn * elapsedDays;
+        
+        // Ensure we don't display more than the total profit
+        if (amountCollected > totalProfit) {
+            amountCollected = totalProfit;
+        }
+        
+        // Create and store the row HTML in the array
+        tableRows.push(`
+            <tr>
+                <td>${currentDate.toLocaleDateString()}</td>
+                <td>${dailyReturn.toFixed(2)}</td>
+                <td>$${amountCollected.toFixed(2)}</td>
+            </tr>`);
+    }
+    
+    let tableContent = `
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Daily Released</th>
+                <th>Total Collected</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows.reverse().join('')}
+        </tbody>
+    </table>`;
+    
+    var totalsum = parseFloat(totalCollectedSoFar) + parseFloat(packageDetails.amountInvested);
+
+    // Add the generated table to the popup content
+    popupContent.innerHTML = `
+        <strong>Transaction ID:</strong> ${packageDetails.id}<br>
+        <strong>Invested Amount:</strong> $${packageDetails.amountInvested}<br>
+        <strong>Final Amount:</strong> $${packageDetails.totalReturn}<br>
+        <strong>Start Date:</strong> ${startDate.toLocaleDateString()}<br>
+        <strong>End Date:</strong> ${endDate.toLocaleDateString()}<br>
+        <strong>Daily Return:</strong> $${dailyReturn} (Per day)<br>
+        <strong>Total Collected So Far:</strong> $${totalsum}<br>
+        ${tableContent}
+    `;
+    // Use the CSS :target mechanism to show the popup
+    window.location.hash = 'popup1'; // This will make the popup visible
+}
+
+
+// Handle closing the popup by the close button
+document.querySelector('#popup1 .close').addEventListener('click', function(e) {
+    e.preventDefault(); // Prevent default anchor behavior
+    window.location.hash = ''; // Reset the hash to close the overlay
+});
+
 
 async function withdrawReturns(packageId, investmentId, userAddress) {
     const abi = await fetchABI();

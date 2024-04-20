@@ -308,7 +308,59 @@
             </div>
          </div>
          <!-- END: Content -->
+         <style>
+            .overlay_popup {
+              position: fixed;
+              top: 0;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              background: rgba(0, 0, 0, 0.7);
+              transition: opacity 500ms;
+              visibility: hidden;
+              opacity: 0;
+              z-index: 9999;
+            }
+            .overlay_popup:target {
+              visibility: visible;
+              opacity: 1;
+            }
+            .popup {
+              margin: 70px auto;
+              padding: 20px;
+              background: #fff;
+              border-radius: 5px;
+              width: 80%;
+              position: relative;
+              transition: all 2s ease-in-out;
+            }
+            .popup .close {
+              position: absolute;
+              top: 20px;
+              right: 30px;
+              transition: all 200ms;
+              font-size: 30px;
+              font-weight: bold;
+              text-decoration: none;
+              color: #333;
+            }
+            .popup .content_popup {
+               max-height: 500px;
+               overflow-y: scroll;
+            }               
+         </style>
+         <div id="popup1" class="overlay_popup">
+            <div class="popup">
+                <h2 class="text-lg font-medium mr-auto">Package Details</h2>
+                <a class="close" href="#">&times;</a>
+                <br>
+                <div class="content_popup">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+         </div>
       </div>
+     
       <!-- BEGIN: Dark Mode Switcher-->
       <div data-url="side-menu-dark-tabulator.html" class="dark-mode-switcher cursor-pointer shadow-md fixed bottom-0 right-0 box border rounded-full w-40 h-12 flex items-center justify-center z-50 mb-10 mr-10">
          <div class="mr-4 text-slate-600 dark:text-slate-200">Dark Mode</div>
