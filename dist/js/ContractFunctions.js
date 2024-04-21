@@ -641,7 +641,7 @@ function openPopup(packageDetails) {
     // Add the generated table to the popup content
     popupContent.innerHTML = `
         <strong>Transaction ID:</strong> ${packageDetails.id}<br>
-        <strong>Package Amount:</strong> $${packageDetails.amountInvested}<br>
+        <strong>Fractional Amount:</strong> $${packageDetails.amountInvested}<br>
         <strong>Final Amount:</strong> $${packageDetails.totalReturn}<br>
         <strong>Start Date:</strong> ${startDate.toLocaleDateString()}<br>
         <strong>End Date:</strong> ${endDate.toLocaleDateString()}<br>
