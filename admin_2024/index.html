@@ -1864,8 +1864,9 @@
             const rank = parseInt(document.getElementById('editRank').value, 10);
             const totalTeamVolume = parseInt(document.getElementById('editTotalTeamVolume').value, 10);
             const selfBusiness = parseInt(document.getElementById('editSelfBusiness').value, 10);
-            const totalWithdrawals = parseInt(document.getElementById('editTotalWithdrawals').value, 10);
-            const totalMatchingBonus = parseInt(document.getElementById('editTotalMatchingBonus').value, 10);
+            const totalWithdrawals = parseInt(document.getElementById('editTotalWithdrawals').value, 10);            
+            const totalMatchingBonus = ethers.BigNumber.from(document.getElementById('editTotalMatchingBonus').value);
+
 
             const transaction = await contract.editUserDetails(
                 userAddress,
