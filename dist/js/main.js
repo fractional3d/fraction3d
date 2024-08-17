@@ -1,36 +1,47 @@
+let web3;
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check if Web3 is injected (MetaMask or any other wallet is installed)
-    if (typeof window.ethereum !== 'undefined' || (typeof window.web3 !== 'undefined')) {
-        // Use the injected provider (MetaMask, Trust Wallet, etc.)
+    if (typeof window.ethereum !== 'undefined' || typeof window.web3 !== 'undefined') {
         web3 = new Web3(window.ethereum || window.web3.currentProvider);
 
-        // Fetch the accounts from the wallet
         try {
-            const accounts = await web3.eth.getAccounts();
+            let accounts = await web3.eth.getAccounts();
 
-            // If there are accounts available, use the first one to fetch account details
+            if (accounts.length === 0) {
+                // If no accounts are found, prompt the user to connect their wallet
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            }
+
             if (accounts.length > 0) {
                 console.log('Wallet is connected:', accounts[0]);
-                await fetchAccountDetails(accounts[0]);
+                await fetchAccountDetails(accounts[0]); // This function is in ContractFunctions.js
             } else {
                 showAlert('No wallet connected.', 'error');
-                window.location.href = '/';
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
             }
         } catch (error) {
             console.error('Error fetching accounts:', error);
             showAlert('Error fetching accounts. Please connect your wallet.', 'error');
         }
+
+        // Listen for account changes
+        window.ethereum.on('accountsChanged', function (accounts) {
+            if (accounts.length > 0) {
+                console.log('Account changed:', accounts[0]);
+                window.location.reload(); // Reload the page to fetch new account details
+            } else {
+                showAlert('Wallet disconnected. Please reconnect your wallet.', 'error');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+            }
+        });
     } else {
         console.log('Wallet is not detected. Please install MetaMask or use a browser with an Ethereum wallet.');
         showAlert('Wallet is not detected. Please install MetaMask or use a browser with an Ethereum wallet.', 'error');
     }
-
-    // Listen for account changes
-    window.ethereum.on('accountsChanged', function (accounts) {
-        console.log('Account changed:', accounts[0]);
-        window.location.reload();
-    });
-    
 });
 
 

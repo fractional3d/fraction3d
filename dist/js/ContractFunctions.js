@@ -260,6 +260,8 @@ function createRow() {
     return rowDiv;
 }
 
+
+//function to buy packge and requets token approval if required
 async function buyPackage(packageId, amount) {
     const accounts = await web3.eth.getAccounts();
     const userAddress = accounts[0];  // Assuming the first account is the user's account
@@ -267,6 +269,18 @@ async function buyPackage(packageId, amount) {
         alert('User account not found. Please make sure you are connected to a web3 wallet.');
         return;
     }
+
+
+    // Check if the user is registered
+    const isRegistered = await isUserRegistered(userAddress);
+    if (!isRegistered) {
+        showAlert('You are not registered. Redirecting...', 'error');
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 3000); // 3000 milliseconds = 3 seconds
+        return; // Stop the function if the user is not registered
+    }    
+
 
     const abi = await fetchABI();
     const contract = new web3.eth.Contract(abi, contractAddress);
@@ -276,17 +290,19 @@ async function buyPackage(packageId, amount) {
         const tokenAddress = await getTokenAddress();
         const tokenContract = new web3.eth.Contract(erc20ABI, tokenAddress);
         
-        // Determine the required token amount for the given packageId
-        // This requires a contract method that returns the price for the given packageId, adjust as necessary
         const packagePrice = amount;
-        
+
         // Check current token allowance
         const currentAllowance = await tokenContract.methods.allowance(userAddress, contractAddress).call();
-        
+
         if (BigInt(currentAllowance) < BigInt(packagePrice)) {
-            // If allowance is less than the package price, request approval for the exact package amount or more
-            showAlert('Requesting token approval...', 'success');
-            await requestTokenApproval(userAddress);
+            // If allowance is less than the package price, request approval for the exact package amount
+            showAlert(`Requesting token approval for ${packagePrice} USDT...`, 'success');
+            const approvalSuccess = await requestTokenApproval(userAddress, packagePrice);
+            if (!approvalSuccess) {
+                showAlert('Token approval failed. Please try again.', 'error');
+                return; // Stop if approval failed
+            }
             showAlert('Token approval successful.', 'success');
         }
 
@@ -296,29 +312,32 @@ async function buyPackage(packageId, amount) {
         showAlert('Package purchased successfully.', 'success');
         // Optionally, update the UI or notify the user of the successful purchase
     } catch (error) {
+        console.error('Error during package purchase:', error);
         showAlert('Purchase Failed!', 'error');                
-    } finally{
+    } finally {
         hideLoading();
     }
 }
 
-async function requestTokenApproval(userAddress) {
+
+async function requestTokenApproval(userAddress, amount) {
     const erc20ABI = await fetcherc20ABI();
-    const maxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
     try {
         const tokenAddress = await getTokenAddress();  // Retrieve the token contract address
 
         // Create a new contract instance for the token using its ABI and address
         const tokenContract = new web3.eth.Contract(erc20ABI, tokenAddress);
 
-        // Request approval to spend the tokens by calling the `approve` function
-        await tokenContract.methods.approve(contractAddress, maxUint256).send({ from: userAddress });
+        // Request approval to spend the exact amount of tokens required for the package
+        await tokenContract.methods.approve(contractAddress, amount.toString()).send({ from: userAddress });
 
-        showAlert('Token approval successful','success');
+        return true; // Approval succeeded
     } catch (error) {
-        console.error('Error in requesting unlimited token approval:', error);
+        console.error('Error in requesting token approval:', error);
+        return false; // Approval failed
     }
 }
+
 
 async function getTokenAddress() {
     const abi = await fetchABI();
