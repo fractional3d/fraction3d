@@ -260,8 +260,7 @@ function createRow() {
     return rowDiv;
 }
 
-
-//function to buy packge and requets token approval if required
+//function to buy package
 async function buyPackage(packageId, amount) {
     const accounts = await web3.eth.getAccounts();
     const userAddress = accounts[0];  // Assuming the first account is the user's account
@@ -269,7 +268,6 @@ async function buyPackage(packageId, amount) {
         alert('User account not found. Please make sure you are connected to a web3 wallet.');
         return;
     }
-
 
     // Check if the user is registered
     const isRegistered = await isUserRegistered(userAddress);
@@ -281,24 +279,26 @@ async function buyPackage(packageId, amount) {
         return; // Stop the function if the user is not registered
     }    
 
-
     const abi = await fetchABI();
     const contract = new web3.eth.Contract(abi, contractAddress);
     const erc20ABI = await fetcherc20ABI();
     try {
         showLoading();
+        
+        // Fetch token decimals using the function from the main contract
+        const decimals = await contract.methods.tokenDecimals().call();
+        const adjustedAmount = BigInt(amount) * BigInt(10 ** decimals);
+
         const tokenAddress = await getTokenAddress();
         const tokenContract = new web3.eth.Contract(erc20ABI, tokenAddress);
-        
-        const packagePrice = amount;
 
         // Check current token allowance
         const currentAllowance = await tokenContract.methods.allowance(userAddress, contractAddress).call();
 
-        if (BigInt(currentAllowance) < BigInt(packagePrice)) {
+        if (BigInt(currentAllowance) < adjustedAmount) {
             // If allowance is less than the package price, request approval for the exact package amount
-            showAlert(`Requesting token approval for ${packagePrice} USDT...`, 'success');
-            const approvalSuccess = await requestTokenApproval(userAddress, packagePrice);
+            showAlert(`Requesting token approval for ${amount} USDT...`, 'success');
+            const approvalSuccess = await requestTokenApproval(userAddress, adjustedAmount);
             if (!approvalSuccess) {
                 showAlert('Token approval failed. Please try again.', 'error');
                 return; // Stop if approval failed
@@ -674,10 +674,14 @@ function openPopup(packageDetails) {
 
 
 // Handle closing the popup by the close button
-document.querySelector('#popup1 .close').addEventListener('click', function(e) {
-    e.preventDefault(); // Prevent default anchor behavior
-    window.location.hash = ''; // Reset the hash to close the overlay
-});
+const closeButton = document.querySelector('#popup1 .close');
+if (closeButton) {
+    closeButton.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent default anchor behavior
+        window.location.hash = ''; // Reset the hash to close the overlay
+    });
+}
+
 
 
 async function withdrawReturns(packageId, investmentId, userAddress) {
